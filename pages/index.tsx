@@ -2,11 +2,28 @@ import { useState } from 'react';
 import Head from 'next/head';
 import AddContactForm from '../components/AddContactForm';
 import ContactCard from '../components/ContactCard';
-import contacts from './api/contacts';
 
-export default function Home() {
-  const [contacts, setContacts] = useState('');
+import { PrismaClient, Contact, Prisma } from '@prisma/client';
 
+const prisma = new PrismaClient();
+
+async function saveContact(contact: Prisma.ContactCreateInput) {
+  const res = await fetch('/api/contacts', {
+    method: 'POST',
+    body: JSON.stringify(contact),
+  });
+
+  if (!res.ok) {
+    throw new Error(res.statusText);
+  }
+
+  return await res.json();
+}
+
+export default function Home({ initialContacts }) {
+  const [contacts, setContacts] = useState<Contact[]>(initialContacts);
+
+  console.log(contacts);
   return (
     <>
       <Head>
@@ -22,19 +39,35 @@ export default function Home() {
           <div className="mb-3">
             <h2 className="text-3xl text-white">Add a Contact</h2>
           </div>
-          <AddContactForm onSubmit={''} />
+          <AddContactForm
+            onSubmit={async (data, e) => {
+              try {
+                await saveContact(data);
+                setContacts([...contacts, data]);
+                e.target.reset();
+              } catch (err) {
+                console.log(err);
+              }
+            }}
+          />
         </section>
         <section className="w-2/3 h-screen p-8">
           <div className="mb-3">
             <h2 className="text-3xl text-gray-700">Contacts</h2>
           </div>
-          {contacts.map((card, index) => (
+          {contacts.map((contact: Contact, index: number) => (
             <div className="mb-3" key={index}>
-              <ContactCard contact={card} />
+              <ContactCard contact={contact} />
             </div>
           ))}
         </section>
       </div>
     </>
   );
+}
+
+export async function getServerSideProps() {
+  const contacts: Contact[] = await prisma.contact.findMany();
+
+  return { props: { initialContacts: contacts } };
 }

@@ -1,12 +1,7 @@
 import Image from 'next/image';
-
+import { Contact } from '@prisma/client';
 interface ContactCardProps {
-  contact: {
-    firstName: string;
-    lastName: string;
-    email: string;
-    avatar: string;
-  };
+  contact: Contact;
 }
 
 function ContactCard({ contact }: ContactCardProps) {
