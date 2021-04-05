@@ -23,7 +23,6 @@ async function saveContact(contact: Prisma.ContactCreateInput) {
 export default function Home({ initialContacts }) {
   const [contacts, setContacts] = useState<Contact[]>(initialContacts);
 
-  console.log(contacts);
   return (
     <>
       <Head>
